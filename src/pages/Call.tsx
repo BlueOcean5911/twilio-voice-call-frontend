@@ -173,7 +173,8 @@ const Call = () => {
       <div className="card text-center log-container">
         <div className="flex gap-4">
           <input
-            type="text"
+            id="FromPhoneNumber"
+            type="tel"
             value={fromNumber}
             onChange={(e) => setFromNumber(e.target.value)}
           />
