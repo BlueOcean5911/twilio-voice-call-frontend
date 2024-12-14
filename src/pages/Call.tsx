@@ -4,14 +4,14 @@ import React, { useState, useEffect } from "react";
 import DialPad from "@/components/DialPad";
 import CallInProgress from "@/components/CallInProgress";
 import IncomingCallModal from "@/components/CallIncomingModal";
-import { Connection } from "twilio-client";
+import { Device, Connection } from "twilio-client";
 interface TokenResponse {
   token: string;
   identify: string;
 }
 
 const Call: React.FC = () => {
-  const [device, setDevice] = useState<Twilio.Device | null>(null);
+  const [device, setDevice] = useState<Device | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [showDialPad, setShowDialPad] = useState<boolean>(false);
 
@@ -33,7 +33,6 @@ const Call: React.FC = () => {
           "https://api.twillio-call.aivio.io/token"
         );
         const data: TokenResponse = response.data;
-        // const data: TokenResponse = await response.json();
         const { Device, Connection } = await import("twilio-client");
         const newDevice = new Device(data.token, {
           codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
@@ -45,13 +44,16 @@ const Call: React.FC = () => {
         });
 
         newDevice.on("ready", () => addLog("Device Ready!"));
+
         newDevice.on("error", (error) =>
           addLog("Twilio.Device Error: " + error)
         );
+
         newDevice.on("connect", () => {
           addLog("Successfully established call ! ");
           setShowCallInProgress(true);
         });
+
         newDevice.on("disconnect", () => {
           addLog("Call ended.");
           setShowCallInProgress(false);
@@ -61,6 +63,18 @@ const Call: React.FC = () => {
           addLog("Incoming connection from " + connection.parameters.From);
           setIncomingNumber(connection.parameters.From);
           setIncomingCall(connection);
+        });
+
+        newDevice.on("error", async (error) => {
+          addLog("Twilio.Device Error: " + error.message);
+        });
+
+        newDevice.on("offline", async (device: Device) => {
+          const accessToken = await refreshToken();
+          if (accessToken) {
+            device.setup(accessToken);
+            addLog("Token refreshed. Device is now online.");
+          }
         });
         setDevice(newDevice);
       } catch (err) {
@@ -86,6 +100,20 @@ const Call: React.FC = () => {
     if (!device) return;
     device.disconnectAll();
     setShowCallInProgress(false);
+  };
+
+  // Add this function at the component level
+  const refreshToken = async () => {
+    try {
+      const response = await axios.get(
+        "https://api.twillio-call.aivio.io/token"
+      );
+      const data: TokenResponse = response.data;
+      addLog("Fetching refreshed token successfully");
+      return data.token;
+    } catch (err) {
+      addLog("Failed to fetch refreshed access token: " + err);
+    }
   };
 
   return (
