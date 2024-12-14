@@ -68,10 +68,34 @@ const Call = () => {
         addLog("Call ended." + " " + conn.parameters.CallSid);
       });
 
+      newDevice.on("ringing", (conn: any) => {
+        addLog("Call ringing." + " " + conn.parameters.CallSid);
+      });
+
       newDevice.on("incoming", (conn: any) => {
         console.log(conn.parameters);
         addLog("Incoming connection from " + " " + conn.parameters.From);
-        addConnectionHandler(conn);
+        conn.on("reject", () => {
+          setConnections((prev) =>
+            prev.filter(
+              (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
+            )
+          );
+        });
+        conn.on("cancel", () => {
+          setConnections((prev) =>
+            prev.filter(
+              (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
+            )
+          );
+        });
+        conn.on("disconnect", () => {
+          setConnections((prev) =>
+            prev.filter(
+              (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
+            )
+          );
+        });
         setConnections((prev) => [...prev, conn]);
         setCallMapping((prev) => ({
           ...prev,
@@ -104,17 +128,39 @@ const Call = () => {
     setShowDialPad(false);
 
     const outgoingConnection = device.connect({ To: phoneNumber });
-    // addConnectionHandler(outgoingConnection);
     setConnections((prev: any[]) => [...prev, outgoingConnection]);
-    setCallMapping((prev) => ({
-      ...prev,
-      [outgoingConnection.parameters.CallSid]: {
-        leadId: "12345",
-        firstName: "John",
-        lastName: "Doe",
-        phoneNumber: phoneNumber,
-      },
-    }));
+
+    outgoingConnection.on("accept", () => {
+      const CallSid = outgoingConnection.parameters.CallSid;
+
+      setCallMapping((prev) => ({
+        ...prev,
+        [CallSid]: {
+          leadId: "12345",
+          firstName: "John",
+          lastName: "Doe",
+          phoneNumber: phoneNumber,
+        },
+      }));
+    });
+
+    outgoingConnection.on("disconnect", (conn: any) => {
+      setConnections((prev) =>
+        prev.filter(
+          (connection) =>
+            connection.parameters.CallSid !== conn.parameters.CallSid
+        )
+      );
+    });
+
+    outgoingConnection.on("closed", (conn: any) => {
+      setConnections((prev) =>
+        prev.filter(
+          (connection) =>
+            connection.parameters.CallSid !== conn.parameters.CallSid
+        )
+      );
+    });
   };
 
   useEffect(() => {
@@ -135,46 +181,45 @@ const Call = () => {
     }
   };
 
-  const addConnectionHandler = (connection: any) => {
-    connection.on("pending", function (connection: any) {
-      addLog("Pending..." + " " + connection.parameters.CallSid);
-      connection.on("connecting", function (connection: any) {
-        addLog("Connecting..." + " " + connection.parameters.CallSid);
-      });
-      connection.on("ringing", function () {
-        addLog("Ringing..." + " " + connection.parameters.CallSid);
-      });
-      connection.on("open", function () {
-        addLog("Connected!" + " " + connection.parameters.CallSid);
-      });
-      connection.on("closed", function (connection: any) {
-        addLog("Call ended." + " " + connection.parameters.CallSid);
-        setConnections((prev) =>
-          prev.filter(
-            (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
-          )
-        );
-      });
-    });
-
-    connection.on("accept", function (connection: any) {
-      addLog("Accepted..." + " " + connection.parameters.CallSid);
-    });
-    connection.on("reject", () => {
-      setConnections((prev) =>
-        prev.filter(
-          (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
-        )
-      );
-    });
-    connection.on("cancel", () => {
-      setConnections((prev) =>
-        prev.filter(
-          (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
-        )
-      );
-    });
-  };
+  // const addConnectionHandler = (connection: any) => {
+  //   connection.on("pending", function (connection: any) {
+  //     addLog("Pending..." + " " + connection.parameters.CallSid);
+  //     connection.on("connecting", function (connection: any) {
+  //       addLog("Connecting..." + " " + connection.parameters.CallSid);
+  //     });
+  //     connection.on("ringing", function () {
+  //       addLog("Ringing..." + " " + connection.parameters.CallSid);
+  //     });
+  //     connection.on("open", function () {
+  //       addLog("Connected!" + " " + connection.parameters.CallSid);
+  //     });
+  //     connection.on("closed", function (connection: any) {
+  //       addLog("Call ended." + " " + connection.parameters.CallSid);
+  //       setConnections((prev) =>
+  //         prev.filter(
+  //           (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
+  //         )
+  //       );
+  //     });
+  //   });
+  //   connection.on("accept", function (connection: any) {
+  //     addLog("Accepted..." + " " + connection.parameters.CallSid);
+  //   });
+  //   connection.on("reject", () => {
+  //     setConnections((prev) =>
+  //       prev.filter(
+  //         (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
+  //       )
+  //     );
+  //   });
+  //   connection.on("cancel", () => {
+  //     setConnections((prev) =>
+  //       prev.filter(
+  //         (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
+  //       )
+  //     );
+  //   });
+  // };
 
   return (
     <div className="container">
@@ -213,21 +258,18 @@ const Call = () => {
         </div>
       </div>
       {connections.length > 0 &&
-        connections.map((connection) => (
-          <div
-            key={connection.parameters.CallSid}
-            className="fixed bottom-0 right-24 px-8 py-2"
-          >
+        connections.map((connection, index) => (
+          <div key={index} className="fixed bottom-0 right-24 px-8 py-2">
             {callMapping[connection.parameters.CallSid] && (
               <CallBar
-                callInfo={callMapping[connection.parameters.CallSid]}
                 connection={connection}
+                callInfo={callMapping[connection.parameters.CallSid]}
               />
             )}
           </div>
         ))}
       <div className="fixed bottom-0 right-0 px-8 py-2">
-        {connections.length === 0 && device && device.status() == "ready" && (
+        {device && device.status() == "ready" && (
           <div
             className="flex items-center justify-center gap-2 text-green-600 rounded-full p-4 m-2 shadow-[0_0_15px_5px_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_8px_rgba(0,0,0,0.25)] transition-shadow duration-300 cursor-pointer"
             onClick={() => {
