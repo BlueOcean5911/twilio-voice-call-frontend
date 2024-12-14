@@ -20,7 +20,7 @@ interface CallInfo {
 }
 
 interface CallMapping {
-  [callSid: string]: CallInfo;
+  [CallSid: string]: CallInfo;
 }
 
 const Call = () => {
@@ -108,7 +108,7 @@ const Call = () => {
     setConnections((prev: any[]) => [...prev, outgoingConnection]);
     setCallMapping((prev) => ({
       ...prev,
-      [outgoingConnection.parameters.callSid]: {
+      [outgoingConnection.parameters.CallSid]: {
         leadId: "12345",
         firstName: "John",
         lastName: "Doe",
