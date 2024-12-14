@@ -3,7 +3,8 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import DialPad from "@/components/DialPad";
 import CallInProgress from "@/components/CallInProgress";
-
+import IncomingCallModal from "@/components/CallIncomingModal";
+import { Connection } from "twilio-client";
 interface TokenResponse {
   token: string;
   identify: string;
@@ -16,6 +17,11 @@ const Call: React.FC = () => {
 
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [showCallInProgress, setShowCallInProgress] = useState(false);
+  const [incomingCall, setIncomingCall] = useState<Connection | null>(null);
+  const [incomingNumber, setIncomingNumber] = useState<string>("");
+
+  // Add this to your device initialization (inside useEffect)
+
   const addLog = (message: string): void => {
     setLogs((prev) => [...prev, message]);
   };
@@ -50,7 +56,12 @@ const Call: React.FC = () => {
           addLog("Call ended.");
           setShowCallInProgress(false);
         });
-
+        newDevice.on("incoming", (connection) => {
+          console.log(connection.parameters);
+          addLog("Incoming connection from " + connection.parameters.From);
+          setIncomingNumber(connection.parameters.From);
+          setIncomingCall(connection);
+        });
         setDevice(newDevice);
       } catch (err) {
         addLog("Could not get a token from server!" + err);
@@ -106,6 +117,24 @@ const Call: React.FC = () => {
 
       {showCallInProgress && phoneNumber && (
         <CallInProgress phoneNumber={phoneNumber} onHangUp={handleHangUp} />
+      )}
+
+      {incomingCall && (
+        <IncomingCallModal
+          phoneNumber={incomingNumber}
+          onAccept={() => {
+            incomingCall.accept();
+            addLog("Accepted call...");
+            setIncomingCall(null);
+            setShowCallInProgress(true);
+            setPhoneNumber(incomingNumber);
+          }}
+          onReject={() => {
+            incomingCall.reject();
+            addLog("Rejected call...");
+            setIncomingCall(null);
+          }}
+        />
       )}
     </div>
   );
