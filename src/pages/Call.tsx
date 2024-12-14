@@ -2,7 +2,7 @@
 "use client";
 
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DialPad from "@/components/DialPad";
 import CallBar from "@/components/CallBar";
 import { PhoneCall } from "lucide-react";
@@ -116,6 +116,10 @@ const Call = () => {
       },
     }));
   };
+
+  useEffect(() => {
+    console.log("callMapping", callMapping);
+  }, [callMapping]);
 
   const refreshToken = async () => {
     try {
