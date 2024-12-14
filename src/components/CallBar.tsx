@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { Phone, PhoneCall, Mic, PhoneOff } from "lucide-react";
-import { Connection } from "twilio-client";
 
 interface CallInfo {
   leadId: string;
@@ -13,7 +13,7 @@ export default function CallBar({
   connection,
   callInfo,
 }: {
-  connection: Connection;
+  connection: any;
   callInfo: CallInfo;
 }) {
   return (
@@ -30,7 +30,7 @@ export default function CallBar({
           Show Caller Details
         </button>
       </div>
-      {connection && connection.status() === Connection.State.Pending && (
+      {connection && connection.status() === "pending" && (
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
             <button
@@ -52,19 +52,19 @@ export default function CallBar({
           </div>
         </div>
       )}
-      {connection && connection.status() === Connection.State.Connecting && (
+      {connection && connection.status() === "connecting" && (
         <div className="flex items-center gap-2 text-green-600">
           <PhoneCall className="h-5 w-5" />
           Connecting...
         </div>
       )}
-      {connection && connection.status() === Connection.State.Ringing && (
+      {connection && connection.status() === "ringing" && (
         <div className="flex items-center gap-2 text-green-600">
           <PhoneCall className="h-5 w-5" />
           Ringing...
         </div>
       )}
-      {connection && connection.status() === Connection.State.Open && (
+      {connection && connection.status() === "open" && (
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-green-600">
             <PhoneCall className="h-5 w-5" />

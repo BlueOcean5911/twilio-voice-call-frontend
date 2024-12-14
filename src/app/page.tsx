@@ -1,11 +1,11 @@
 "use client";
 import dynamic from "next/dynamic";
-// import Call from "@/pages/Call";
 
-const Call = dynamic(() => import("@/pages/Call"), {
+const CallComponent = dynamic(() => import("@/pages/Call"), {
   ssr: false,
+  loading: () => <div>Loading...</div>,
 });
-const Page = () => {
-  return <Call />;
-};
-export default Page;
+
+export default function Home() {
+  return <CallComponent />;
+}

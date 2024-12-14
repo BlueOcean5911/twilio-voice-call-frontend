@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import DialPad from "@/components/DialPad";
 import CallBar from "@/components/CallBar";
 import { PhoneCall } from "lucide-react";
-import { Connection, Device } from "twilio-client";
 
 interface TokenResponse {
   token: string;
@@ -24,24 +24,21 @@ interface CallMapping {
 }
 
 const Call = () => {
-  const [device, setDevice] = useState<Device | null>(null);
-  const [connections, setConnections] = React.useState<Connection[] | []>([]);
+  const [device, setDevice] = useState<any>(null);
+  const [connections, setConnections] = React.useState<any[] | []>([]);
   const [callMapping, setCallMapping] = useState<CallMapping>({});
   const [logs, setLogs] = useState<string[]>([]);
   const [showDialPad, setShowDialPad] = useState<boolean>(false);
 
   const [fromNumber, setFromNumber] = useState<string>("");
 
-  useEffect(() => {
-    console.log("Device:", device);
-    console.log("Connections:", connections);
-  }, [connections, device]);
-
   const addLog = (message: string): void => {
     setLogs((prev) => [...prev, message]);
   };
 
   const initializeTwilio = async () => {
+    if (typeof window === "undefined") return;
+
     const { Device, Connection } = await import("twilio-client");
     try {
       const response = await axios.get(
@@ -63,15 +60,15 @@ const Call = () => {
 
       newDevice.on("error", (error) => addLog("Twilio.Device Error: " + error));
 
-      newDevice.on("connect", (conn: Connection) => {
+      newDevice.on("connect", (conn: any) => {
         addLog("Connection successfully established." + " " + conn.parameters);
       });
 
-      newDevice.on("disconnect", (conn: Connection) => {
+      newDevice.on("disconnect", (conn: any) => {
         addLog("Call ended." + " " + conn.parameters.CallSid);
       });
 
-      newDevice.on("incoming", (conn: Connection) => {
+      newDevice.on("incoming", (conn: any) => {
         console.log(conn.parameters);
         addLog("Incoming connection from " + " " + conn.parameters.From);
         addConnectionHandler(conn);
@@ -87,7 +84,7 @@ const Call = () => {
         }));
       });
 
-      newDevice.on("offline", async (device: Device) => {
+      newDevice.on("offline", async (device: any) => {
         const accessToken = await refreshToken();
         if (accessToken) {
           device.setup(accessToken);
@@ -107,8 +104,8 @@ const Call = () => {
     setShowDialPad(false);
 
     const outgoingConnection = device.connect({ To: phoneNumber });
-    addConnectionHandler(outgoingConnection);
-    setConnections((prev: Connection[]) => [...prev, outgoingConnection]);
+    // addConnectionHandler(outgoingConnection);
+    setConnections((prev: any[]) => [...prev, outgoingConnection]);
     setCallMapping((prev) => ({
       ...prev,
       [outgoingConnection.parameters.callSid]: {
@@ -133,10 +130,10 @@ const Call = () => {
     }
   };
 
-  const addConnectionHandler = (connection: Connection) => {
-    connection.on("pending", function (connection: Connection) {
+  const addConnectionHandler = (connection: any) => {
+    connection.on("pending", function (connection: any) {
       addLog("Pending..." + " " + connection.parameters.CallSid);
-      connection.on("connecting", function (connection: Connection) {
+      connection.on("connecting", function (connection: any) {
         addLog("Connecting..." + " " + connection.parameters.CallSid);
       });
       connection.on("ringing", function () {
@@ -145,7 +142,7 @@ const Call = () => {
       connection.on("open", function () {
         addLog("Connected!" + " " + connection.parameters.CallSid);
       });
-      connection.on("closed", function (connection: Connection) {
+      connection.on("closed", function (connection: any) {
         addLog("Call ended." + " " + connection.parameters.CallSid);
         setConnections((prev) =>
           prev.filter(
@@ -155,7 +152,7 @@ const Call = () => {
       });
     });
 
-    connection.on("accept", function (connection: Connection) {
+    connection.on("accept", function (connection: any) {
       addLog("Accepted..." + " " + connection.parameters.CallSid);
     });
     connection.on("reject", () => {
