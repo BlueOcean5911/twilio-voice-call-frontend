@@ -205,10 +205,12 @@ const Call = () => {
             key={connection.parameters.CallSid}
             className="fixed bottom-0 right-24 px-8 py-2"
           >
-            <CallBar
-              callInfo={callMapping[connection.parameters.CallSid]}
-              connection={connection}
-            />
+            {callMapping[connection.parameters.CallSid] && (
+              <CallBar
+                callInfo={callMapping[connection.parameters.CallSid]}
+                connection={connection}
+              />
+            )}
           </div>
         ))}
       <div className="fixed bottom-0 right-0 px-8 py-2">
