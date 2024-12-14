@@ -2,9 +2,11 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import DialPad from "@/components/DialPad";
-import { Device, Connection } from "twilio-client";
+// Replace static import with
+
 import CallBar from "@/components/CallBar";
 import { PhoneCall } from "lucide-react";
+import type { Device, Connection } from "twilio-client";
 interface TokenResponse {
   token: string;
   identify: string;
@@ -134,19 +136,16 @@ const Call: React.FC = () => {
   const addConnectionHandler = (connection: Connection) => {
     connection.on("pending", function (connection: Connection) {
       addLog("Pending..." + " " + connection.parameters.CallSid);
-      connection.on(
-        Connection.State.Connecting,
-        function (connection: Connection) {
-          addLog("Connecting..." + " " + connection.parameters.CallSid);
-        }
-      );
-      connection.on(Connection.State.Ringing, function () {
+      connection.on("connecting", function (connection: Connection) {
+        addLog("Connecting..." + " " + connection.parameters.CallSid);
+      });
+      connection.on("ringing", function () {
         addLog("Ringing..." + " " + connection.parameters.CallSid);
       });
-      connection.on(Connection.State.Open, function () {
+      connection.on("open", function () {
         addLog("Connected!" + " " + connection.parameters.CallSid);
       });
-      connection.on(Connection.State.Closed, function (connection: Connection) {
+      connection.on("closed", function (connection: Connection) {
         addLog("Call ended." + " " + connection.parameters.CallSid);
         setConnections((prev) =>
           prev.filter(
@@ -216,18 +215,16 @@ const Call: React.FC = () => {
           </div>
         ))}
       <div className="fixed bottom-0 right-0 px-8 py-2">
-        {connections.length === 0 &&
-          device &&
-          device.status() == Device.Status.Ready && (
-            <div
-              className="flex items-center justify-center gap-2 text-green-600 rounded-full p-4 m-2 shadow-[0_0_15px_5px_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_8px_rgba(0,0,0,0.25)] transition-shadow duration-300 cursor-pointer"
-              onClick={() => {
-                setShowDialPad(true);
-              }}
-            >
-              <PhoneCall className="h-8 w-8" />
-            </div>
-          )}
+        {connections.length === 0 && device && device.status() == "ready" && (
+          <div
+            className="flex items-center justify-center gap-2 text-green-600 rounded-full p-4 m-2 shadow-[0_0_15px_5px_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_8px_rgba(0,0,0,0.25)] transition-shadow duration-300 cursor-pointer"
+            onClick={() => {
+              setShowDialPad(true);
+            }}
+          >
+            <PhoneCall className="h-8 w-8" />
+          </div>
+        )}
       </div>
 
       {showDialPad && (
