@@ -203,7 +203,7 @@ const Call = () => {
           </button>
         </div>
       </div>
-      {connections.length &&
+      {connections.length > 0 &&
         connections.map((connection) => (
           <div
             key={connection.parameters.CallSid}
