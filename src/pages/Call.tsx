@@ -1,12 +1,12 @@
 "use client";
+
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import DialPad from "@/components/DialPad";
-// Replace static import with
-
 import CallBar from "@/components/CallBar";
 import { PhoneCall } from "lucide-react";
-import type { Device, Connection } from "twilio-client";
+import { Connection, Device } from "twilio-client";
+
 interface TokenResponse {
   token: string;
   identify: string;
@@ -23,7 +23,7 @@ interface CallMapping {
   [callSid: string]: CallInfo;
 }
 
-const Call: React.FC = () => {
+const Call = () => {
   const [device, setDevice] = useState<Device | null>(null);
   const [connections, setConnections] = React.useState<Connection[] | []>([]);
   const [callMapping, setCallMapping] = useState<CallMapping>({});
@@ -42,12 +42,12 @@ const Call: React.FC = () => {
   };
 
   const initializeTwilio = async () => {
+    const { Device, Connection } = await import("twilio-client");
     try {
       const response = await axios.get(
         `https://api.twillio-call.aivio.io/token/${fromNumber}`
       );
       const data: TokenResponse = response.data;
-      const { Device, Connection } = await import("twilio-client");
       const newDevice = new Device(data.token, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         fakeLocalDTMF: true,
