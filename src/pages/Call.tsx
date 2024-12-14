@@ -119,7 +119,8 @@ const Call = () => {
 
   useEffect(() => {
     console.log("callMapping", callMapping);
-  }, [callMapping]);
+    console.log("connections", connections);
+  }, [callMapping, connections]);
 
   const refreshToken = async () => {
     try {
@@ -160,6 +161,13 @@ const Call = () => {
       addLog("Accepted..." + " " + connection.parameters.CallSid);
     });
     connection.on("reject", () => {
+      setConnections((prev) =>
+        prev.filter(
+          (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
+        )
+      );
+    });
+    connection.on("cancel", () => {
       setConnections((prev) =>
         prev.filter(
           (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
