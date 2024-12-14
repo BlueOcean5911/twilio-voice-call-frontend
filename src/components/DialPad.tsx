@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import { BackspaceIcon } from "@heroicons/react/24/solid";
+import { X } from "lucide-react";
 
 interface DialPadProps {
   onDial: (phoneNumber: string) => void;
@@ -30,10 +31,11 @@ const DialPad: React.FC<DialPadProps> = ({ onDial, onClose }) => {
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-xl font-semibold">Enter the number</h4>
           <button
-            className="text-red-600 hover:text-red-800 text-2xl"
             onClick={onClose}
+            className="right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close dialog"
           >
-            ×
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
