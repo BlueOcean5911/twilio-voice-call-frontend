@@ -1,4 +1,4 @@
-import Call from "@/pages/call";
+import Call from "@/pages/Call";
 
 const Page = () => {
   return <Call />;

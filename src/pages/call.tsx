@@ -71,6 +71,12 @@ const Call: React.FC = () => {
     });
   };
 
+  const handleHangUp = () => {
+    if (!device) return;
+    device.disconnectAll();
+    setShowCallInProgress(false);
+  };
+
   return (
     <div className="container">
       <div className="card text-center log-container">
@@ -99,7 +105,7 @@ const Call: React.FC = () => {
       )}
 
       {showCallInProgress && phoneNumber && (
-        <CallInProgress phoneNumber={phoneNumber} onHangUp={() => {}} />
+        <CallInProgress phoneNumber={phoneNumber} onHangUp={handleHangUp} />
       )}
     </div>
   );
