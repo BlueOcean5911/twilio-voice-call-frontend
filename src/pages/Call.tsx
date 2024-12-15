@@ -68,14 +68,12 @@ const Call = () => {
         addLog("Call ended." + " " + conn.parameters.CallSid);
       });
 
-      newDevice.on("ringing", (conn: any) => {
-        addLog("Call ringing." + " " + conn.parameters.CallSid);
-      });
-
       newDevice.on("incoming", (conn: any) => {
         console.log(conn.parameters);
         addLog("Incoming connection from " + " " + conn.parameters.From);
+
         conn.on("reject", () => {
+          console.log("Incoming Call rejected.", conn.parameters);
           setConnections((prev) =>
             prev.filter(
               (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
@@ -88,6 +86,7 @@ const Call = () => {
           });
         });
         conn.on("cancel", () => {
+          console.log("Incoming Call canceled.", conn.parameters);
           setConnections((prev) =>
             prev.filter(
               (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
@@ -100,6 +99,7 @@ const Call = () => {
           });
         });
         conn.on("disconnect", () => {
+          console.log("Incoming Call disconnected.", conn.parameters);
           setConnections((prev) =>
             prev.filter(
               (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
@@ -111,6 +111,7 @@ const Call = () => {
             return newMapping;
           });
         });
+
         setConnections((prev) => [...prev, conn]);
         setCallMapping((prev) => ({
           ...prev,
@@ -146,6 +147,7 @@ const Call = () => {
     setConnections((prev: any[]) => [...prev, outgoingConnection]);
 
     outgoingConnection.on("accept", () => {
+      console.log("Outgoing Call accepted.", outgoingConnection.parameters);
       const CallSid = outgoingConnection.parameters.CallSid;
 
       setCallMapping((prev) => ({
@@ -160,6 +162,7 @@ const Call = () => {
     });
 
     outgoingConnection.on("disconnect", (conn: any) => {
+      console.log("Outgoing Call disconnected.", conn.parameters);
       setConnections((prev) =>
         prev.filter(
           (connection) =>
@@ -169,12 +172,27 @@ const Call = () => {
     });
 
     outgoingConnection.on("closed", (conn: any) => {
+      console.log("Outgoing Call closed.", conn.parameters);
       setConnections((prev) =>
         prev.filter(
           (connection) =>
             connection.parameters.CallSid !== conn.parameters.CallSid
         )
       );
+    });
+
+    outgoingConnection.on("cancel", (conn: any) => {
+      console.log("Outgoing Call canceled.", conn.parameters);
+      setConnections((prev) =>
+        prev.filter(
+          (connection) =>
+            connection.parameters.CallSid !== conn.parameters.CallSid
+        )
+      );
+    });
+
+    outgoingConnection.on("ringing", (conn: any) => {
+      console.log("Outgoing Call ringing.", conn.parameters);
     });
   };
 
