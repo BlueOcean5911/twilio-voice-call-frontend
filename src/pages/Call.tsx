@@ -139,7 +139,7 @@ const Call = () => {
   };
 
   const handleDial = (phoneNumber: string) => {
-    if (!device && !phoneNumber) return;
+    if (!device || !phoneNumber) return;
 
     setShowDialPad(false);
 
