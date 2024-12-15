@@ -5,6 +5,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import DialPad from "@/components/DialPad";
 import CallBar from "@/components/CallBar";
+import { parsePhoneNumberWithError } from "libphonenumber-js";
 import { PhoneCall } from "lucide-react";
 
 interface TokenResponse {
@@ -34,6 +35,22 @@ const Call = () => {
 
   const addLog = (message: string): void => {
     setLogs((prev) => [...prev, message]);
+  };
+
+  const formatToE164 = (phoneNumber: string): string | null => {
+    try {
+      // Parse without region restriction
+      const parsedNumber = parsePhoneNumberWithError(phoneNumber);
+
+      if (!parsedNumber || !parsedNumber.isValid()) {
+        return null;
+      }
+
+      return parsedNumber.format("E.164");
+    } catch (error) {
+      console.error("Phone number parsing error:", error);
+      return null;
+    }
   };
 
   const initializeTwilio = async () => {
@@ -140,6 +157,12 @@ const Call = () => {
 
   const handleDial = (phoneNumber: string) => {
     if (!device || !phoneNumber) return;
+
+    const formattedNumber = formatToE164(phoneNumber);
+    if (!formattedNumber) {
+      addLog("Invalid phone number format. Please include country code.");
+      return;
+    }
 
     setShowDialPad(false);
 
