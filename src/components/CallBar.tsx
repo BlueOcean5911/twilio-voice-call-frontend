@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Phone, PhoneCall, Mic, PhoneOff } from "lucide-react";
 
 interface CallInfo {
@@ -22,42 +22,45 @@ export default function CallBar({
   accept: () => void;
   reject: () => void;
 }) {
-  // const [duration, setDuration] = useState<string>("00:00");
+  const [duration, setDuration] = useState<string>("00:00");
 
-  // const startTimer = () => {
-  //   let ms = 0;
-  //   let sec = 0;
-  //   let min = 0;
+  useEffect(() => {
+    let intervalId;
 
-  //   const timer = () => {
-  //     ms++;
-  //     if (ms >= 100) {
-  //       sec++;
-  //       ms = 0;
-  //     }
-  //     if (sec === 60) {
-  //       min++;
-  //       sec = 0;
-  //     }
-  //     if (min === 60) {
-  //       ms = 0;
-  //       sec = 0;
-  //       min = 0;
-  //     }
+    if (state === "open") {
+      let ms = 0;
+      let sec = 0;
+      let min = 0;
 
-  //     const seconds = sec < 10 ? `0${sec}` : sec;
-  //     const minutes = min < 10 ? `0${min}` : min;
-  //     setDuration(`${minutes}:${seconds}`);
-  //   };
+      const timer = () => {
+        ms++;
+        if (ms >= 100) {
+          sec++;
+          ms = 0;
+        }
+        if (sec === 60) {
+          min++;
+          sec = 0;
+        }
+        if (min === 60) {
+          ms = 0;
+          sec = 0;
+          min = 0;
+        }
 
-  //   const timeInterval = setInterval(timer, 10);
+        const seconds = sec < 10 ? `0${sec}` : sec;
+        const minutes = min < 10 ? `0${min}` : min;
+        setDuration(`${minutes}:${seconds}`);
+      };
 
-  //   return () => clearInterval(timeInterval);
-  // };
-
-  // if (state === "ringing") {
-  //   startTimer();
-  // }
+      const timeInterval = setInterval(timer, 10);
+      return () => {
+        if (intervalId) {
+          clearInterval(timeInterval);
+        }
+      };
+    }
+  }, [state]);
 
   return (
     <div className="flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-24 justify-between px-4 py-2 bg-white border-b text-sm rounded-lg shadow-lg shadow-gray-900/40">
@@ -113,7 +116,7 @@ export default function CallBar({
             <PhoneCall className="h-5 w-5" />
           </div>
           {/* <div className="text-gray-600 font-medium">{duration}</div> */}
-          <div className="text-gray-600 font-medium">00:00</div>
+          <div className="text-gray-600 font-medium">{duration}</div>
 
           <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
             <Mic className="h-5 w-5" />
