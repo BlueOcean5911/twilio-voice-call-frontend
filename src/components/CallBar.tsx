@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+import React, { useState } from "react";
 import { Phone, PhoneCall, Mic, PhoneOff } from "lucide-react";
 
 interface CallInfo {
@@ -10,14 +10,57 @@ interface CallInfo {
 }
 
 export default function CallBar({
-  connection,
+  state,
   callInfo,
+  disconnect,
+  accept,
+  reject,
 }: {
-  connection: any;
+  state: string;
   callInfo: CallInfo;
+  disconnect: () => void;
+  accept: () => void;
+  reject: () => void;
 }) {
+  const [duration, setDuration] = useState<string>("00:00");
+
+  const startTimer = () => {
+    let ms = 0;
+    let sec = 0;
+    let min = 0;
+
+    const timer = () => {
+      ms++;
+      if (ms >= 100) {
+        sec++;
+        ms = 0;
+      }
+      if (sec === 60) {
+        min++;
+        sec = 0;
+      }
+      if (min === 60) {
+        ms = 0;
+        sec = 0;
+        min = 0;
+      }
+
+      const seconds = sec < 10 ? `0${sec}` : sec;
+      const minutes = min < 10 ? `0${min}` : min;
+      setDuration(`${minutes}:${seconds}`);
+    };
+
+    const timeInterval = setInterval(timer, 10);
+
+    return () => clearInterval(timeInterval);
+  };
+
+  if (state === "ringing") {
+    startTimer();
+  }
+
   return (
-    <div className="flex items-center gap-24 justify-between px-4 py-2 bg-white border-b text-sm rounded-lg shadow-lg shadow-gray-900/40">
+    <div className="flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-24 justify-between px-4 py-2 bg-white border-b text-sm rounded-lg shadow-lg shadow-gray-900/40">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-base">
           <span className="font-medium">Call with</span>
@@ -30,12 +73,12 @@ export default function CallBar({
           Show Caller Details
         </button>
       </div>
-      {connection && connection.status() === "pending" && (
+      {state === "pending" && (
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
             <button
               className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-              onClick={() => connection.reject()}
+              onClick={() => reject()}
             >
               <Phone className="h-4 w-4 rotate-[130deg]" />
               Decline
@@ -44,7 +87,7 @@ export default function CallBar({
           <div className="flex items-center gap-4">
             <button
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-              onClick={() => connection.accept()}
+              onClick={() => accept()}
             >
               <Phone className="h-4 w-4 rotate-[0deg]" />
               Accept
@@ -52,31 +95,31 @@ export default function CallBar({
           </div>
         </div>
       )}
-      {connection && connection.status() === "connecting" && (
+      {state === "connecting" && (
         <div className="flex items-center gap-2 text-green-600">
           <PhoneCall className="h-5 w-5" />
           Connecting...
         </div>
       )}
-      {connection && connection.status() === "ringing" && (
+      {state === "ringing" && (
         <div className="flex items-center gap-2 text-green-600">
           <PhoneCall className="h-5 w-5" />
           Ringing...
         </div>
       )}
-      {connection && connection.status() === "open" && (
+      {state === "open" && (
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-green-600">
             <PhoneCall className="h-5 w-5" />
           </div>
-          <div className="text-gray-600 font-medium">00:01</div>
+          <div className="text-gray-600 font-medium">{duration}</div>
 
           <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
             <Mic className="h-5 w-5" />
           </button>
           <button
             className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-            onClick={() => connection.disconnect()}
+            onClick={() => disconnect()}
           >
             <PhoneOff className="h-4 w-4" />
             Hang Up

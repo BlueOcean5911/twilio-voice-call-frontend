@@ -30,7 +30,7 @@ const Call = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [showDialPad, setShowDialPad] = useState<boolean>(false);
 
-  const [fromNumber, setFromNumber] = useState<string>("");
+  const [aivioPhoneNumber, setAivioPhoneNumber] = useState<string>("");
 
   const addLog = (message: string): void => {
     setLogs((prev) => [...prev, message]);
@@ -42,7 +42,7 @@ const Call = () => {
     const { Device, Connection } = await import("twilio-client");
     try {
       const response = await axios.get(
-        `https://api.twillio-call.aivio.io/token/${fromNumber}`
+        `https://api.twillio-call.aivio.io/token/${aivioPhoneNumber}`
       );
       const data: TokenResponse = response.data;
       const newDevice = new Device(data.token, {
@@ -81,6 +81,11 @@ const Call = () => {
               (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
             )
           );
+          setCallMapping((prev) => {
+            const newMapping = { ...prev };
+            delete newMapping[conn.parameters.CallSid];
+            return newMapping;
+          });
         });
         conn.on("cancel", () => {
           setConnections((prev) =>
@@ -88,6 +93,11 @@ const Call = () => {
               (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
             )
           );
+          setCallMapping((prev) => {
+            const newMapping = { ...prev };
+            delete newMapping[conn.parameters.CallSid];
+            return newMapping;
+          });
         });
         conn.on("disconnect", () => {
           setConnections((prev) =>
@@ -95,6 +105,11 @@ const Call = () => {
               (conn) => conn.parameters.CallSid !== conn.parameters.CallSid
             )
           );
+          setCallMapping((prev) => {
+            const newMapping = { ...prev };
+            delete newMapping[conn.parameters.CallSid];
+            return newMapping;
+          });
         });
         setConnections((prev) => [...prev, conn]);
         setCallMapping((prev) => ({
@@ -171,7 +186,7 @@ const Call = () => {
   const refreshToken = async () => {
     try {
       const response = await axios.get(
-        "https://api.twillio-call.aivio.io/token"
+        `https://api.twillio-call.aivio.io/token/${aivioPhoneNumber}`
       );
       const data: TokenResponse = response.data;
       addLog("Fetching refreshed token successfully");
@@ -181,46 +196,6 @@ const Call = () => {
     }
   };
 
-  // const addConnectionHandler = (connection: any) => {
-  //   connection.on("pending", function (connection: any) {
-  //     addLog("Pending..." + " " + connection.parameters.CallSid);
-  //     connection.on("connecting", function (connection: any) {
-  //       addLog("Connecting..." + " " + connection.parameters.CallSid);
-  //     });
-  //     connection.on("ringing", function () {
-  //       addLog("Ringing..." + " " + connection.parameters.CallSid);
-  //     });
-  //     connection.on("open", function () {
-  //       addLog("Connected!" + " " + connection.parameters.CallSid);
-  //     });
-  //     connection.on("closed", function (connection: any) {
-  //       addLog("Call ended." + " " + connection.parameters.CallSid);
-  //       setConnections((prev) =>
-  //         prev.filter(
-  //           (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
-  //         )
-  //       );
-  //     });
-  //   });
-  //   connection.on("accept", function (connection: any) {
-  //     addLog("Accepted..." + " " + connection.parameters.CallSid);
-  //   });
-  //   connection.on("reject", () => {
-  //     setConnections((prev) =>
-  //       prev.filter(
-  //         (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
-  //       )
-  //     );
-  //   });
-  //   connection.on("cancel", () => {
-  //     setConnections((prev) =>
-  //       prev.filter(
-  //         (conn) => conn.parameters.CallSid !== connection.parameters.CallSid
-  //       )
-  //     );
-  //   });
-  // };
-
   return (
     <div className="container">
       <div className="card text-center log-container">
@@ -228,8 +203,8 @@ const Call = () => {
           <input
             id="FromPhoneNumber"
             type="tel"
-            value={fromNumber}
-            onChange={(e) => setFromNumber(e.target.value)}
+            value={aivioPhoneNumber}
+            onChange={(e) => setAivioPhoneNumber(e.target.value)}
           />
           <button
             className="flex items-center justify-center"
@@ -262,23 +237,27 @@ const Call = () => {
           <div key={index} className="fixed bottom-0 right-24 px-8 py-2">
             {callMapping[connection.parameters.CallSid] && (
               <CallBar
-                connection={connection}
+                state={connection.status()}
                 callInfo={callMapping[connection.parameters.CallSid]}
+                reject={connection.reject()}
+                accept={connection.accept()}
+                disconnect={connection.disconnect()}
               />
             )}
           </div>
         ))}
       <div className="fixed bottom-0 right-0 px-8 py-2">
-        {device && device.status() == "ready" && (
-          <div
-            className="flex items-center justify-center gap-2 text-green-600 rounded-full p-4 m-2 shadow-[0_0_15px_5px_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_8px_rgba(0,0,0,0.25)] transition-shadow duration-300 cursor-pointer"
-            onClick={() => {
-              setShowDialPad(true);
-            }}
-          >
-            <PhoneCall className="h-8 w-8" />
-          </div>
-        )}
+        {device &&
+          (device.status() == "ready" || device.status() == "busy") && (
+            <div
+              className="flex items-center justify-center gap-2 text-green-600 rounded-full p-4 m-2 shadow-[0_0_15px_5px_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_8px_rgba(0,0,0,0.25)] transition-shadow duration-300 cursor-pointer"
+              onClick={() => {
+                setShowDialPad(true);
+              }}
+            >
+              <PhoneCall className="h-8 w-8" />
+            </div>
+          )}
       </div>
 
       {showDialPad && (
