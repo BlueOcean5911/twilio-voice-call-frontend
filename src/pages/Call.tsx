@@ -257,9 +257,9 @@ const Call = () => {
               <CallBar
                 state={connection.status()}
                 callInfo={callMapping[connection.parameters.CallSid]}
-                reject={connection.reject()}
-                accept={connection.accept()}
-                disconnect={connection.disconnect()}
+                reject={() => connection.reject()}
+                accept={() => connection.accept()}
+                disconnect={() => connection.disconnect()}
               />
             )}
           </div>
