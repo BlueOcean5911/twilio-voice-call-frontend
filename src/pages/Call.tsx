@@ -117,7 +117,7 @@ const Call = () => {
             return newMapping;
           });
         });
-        conn.on("disconnect", () => {
+        conn.on("disconnect", async () => {
           console.log("Incoming Call disconnected.", conn.parameters);
           setConnections((prev) =>
             prev.filter(
@@ -129,6 +129,10 @@ const Call = () => {
             delete newMapping[conn.parameters.CallSid];
             return newMapping;
           });
+          console.log(
+            "here --------> ",
+            await fetchCallData(conn.parameters.CallSid)
+          );
         });
 
         setConnections((prev) => [...prev, conn]);
@@ -186,13 +190,17 @@ const Call = () => {
       }));
     });
 
-    outgoingConnection.on("disconnect", (conn: any) => {
+    outgoingConnection.on("disconnect", async (conn: any) => {
       console.log("Outgoing Call disconnected.", conn.parameters);
       setConnections((prev) =>
         prev.filter(
           (connection) =>
             connection.parameters.CallSid !== conn.parameters.CallSid
         )
+      );
+      console.log(
+        "here ---------------> ",
+        await fetchCallData(conn.parameters.CallSid)
       );
     });
 
@@ -236,6 +244,17 @@ const Call = () => {
       return data.token;
     } catch (err) {
       addLog("Failed to fetch refreshed access token: " + err);
+    }
+  };
+
+  const fetchCallData = async (sid: string) => {
+    try {
+      const response = await axios.get(
+        `https://api.twillio-call.aivio.io/call/${sid}`
+      );
+      return response.data;
+    } catch (err) {
+      addLog("Failed to fetch call data: " + err);
     }
   };
 
