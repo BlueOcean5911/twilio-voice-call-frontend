@@ -63,6 +63,7 @@ const Call = () => {
       );
       const data: TokenResponse = response.data;
       const newDevice = new Device(data.token, {
+        identity: aivioPhoneNumber,
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         fakeLocalDTMF: true,
         enableRingingState: true,
