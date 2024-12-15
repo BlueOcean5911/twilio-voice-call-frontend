@@ -59,7 +59,7 @@ const Call = () => {
     const { Device, Connection } = await import("twilio-client");
     try {
       const response = await axios.get(
-        `https://api.twillio-call.aivio.io/token/${aivioPhoneNumber}`
+        `${process.env.NEXT_PUBLIC_BACKEND_ENDPOINT}/token/${aivioPhoneNumber}`
       );
       const data: TokenResponse = response.data;
       const newDevice = new Device(data.token, {
